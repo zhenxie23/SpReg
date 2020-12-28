@@ -5,9 +5,6 @@ SampleCovarianceMatrix <- function(Cov_sample, Dist){
   # Dist: distance matrix
   # Return value: sample covariance matrix
   
-  library(ks);
-  library(gstat);
-  
   num_Y <- nrow(Dist);
   num_R <- ncol(Dist);
   Distvec <- vec(Dist);

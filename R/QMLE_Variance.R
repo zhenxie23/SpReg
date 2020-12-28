@@ -1,8 +1,5 @@
 QMLE_Variance <- function(W, V, FDV, SDV, Vsample, is_cov_misspecified, is_den_misspecified){
   
-  library(georob);
-  library(matrixcalc);
-  
   num_of_group <- length(V);
   num_of_par <- length(FDV[[1]]);
   num_of_obs <- nrow(W[[1]]);

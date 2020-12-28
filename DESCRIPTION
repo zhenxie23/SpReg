@@ -1,0 +1,34 @@
+Package: SpReg
+Title:  a Toolkit of Spatial Econometrics with Misaligned Data
+Version: 0.1.0
+Authors@R: 
+    c(person(given = "Zhen",
+           family = "Xie",
+           role = c("aut", "cre"),
+           email = "zhenx@uchicago.edu"),
+      person(given = "Guillaume",
+             family = "Pouliot",
+             role = c("aut"),
+             email = "guillaumepouliot@uchicago.edu"))
+Maintainer: Zhen Xie <zhenx@uchicago.edu>
+Description:  This R package implements regression analysis for spatially misaligned data, where the geographic locations of the outcome variable and explanatory variables do not coincide. We implement estimation and inference for three complementary estimators: a two-step bootstrap estimator, a minimum-distance estimator, and a one-step Quasi Maximum Likelihood estimator. These three methods trade off statistical power for weaker assumptions on the covariance structure of regression residuals.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Imports: 
+  Formula, 
+  geosphere, 
+  gstat, 
+  sp, 
+  rgdal, 
+  rARPACK, 
+  mixlm, 
+  MASS, 
+  georob, 
+  mvtnorm, 
+  optimx, 
+  matrixcalc, 
+  ks
+VignetteBuilder: knitr
+Language: en-US

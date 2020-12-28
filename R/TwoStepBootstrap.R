@@ -1,39 +1,31 @@
-TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_misspecified, 
-                             is_den_misspecified, Plot = TRUE, 
-                             cutoff, cutoff_u,
+#' Estimation and Inference for Two-Step Estimator including OLS, GLS, Krig-in Regress, and Bootstrap
+#'
+#' @description This function implements the esmation and inference for two-step estimators.
+#'
+#' @param DatR variable R, a spatial object, see function coordinates()
+#' @param VarR name of variable R
+#' @param DatY variable Y, a spatial object, see function coordinates()
+#' @param VarY name of variable Y
+#' @param Variogram_Model variogram model, output of
+#' @param is_cov_misspecified logical; if TRUE, the covariance function is misspecified
+#' @param is_den_misspecified logical; if TRUE, the density function is not Gaussian distribution.
+#' @param Plot_Start_Value logical, plot the variogram and the fitted variogram curve corresponding to starting values
+#' @param Start_Value_Method fitting method, used by gstat, see function fit.variogram()
+#' @param projected logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km)
+#' @return
+#'
+#' @export
+
+TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model,
+                             is_cov_misspecified, is_den_misspecified, Plot = TRUE,                                 cutoff, cutoff_u,
                              Start_Value_Method = 2, projected = FALSE){
-  # DatR: a spatial object, see function coordinates()
-  # VarR: name of variable R
-  # DatY: a spatial object, see function coordinates()
-  # VarY: name of variable Y
-  # Variogram_Model: type of variogram model, model type, e.g. "Exp", "Sph", "Gau", "Mat". Calling vgm() 
-  #            without a model argument returns a data.frame with available models, see function vgm()
-  # is_cov_misspecified: logical; if TRUE, the covariance function is misspecified
-  # is_den_misspecified: logical; if TRUE, the density function is not Gaussian distribution.
-  # Plot_Start_Value: logical, plot the variogram and the fitted variogram curve corresponding to starting values
-  # Start_Value_Method: fitting method, used by gstat, see function fit.variogram()
-  # projected: logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. 
-  #            For projected data, Euclidian distances are computed, for unprojected great circle distances(km)
-  
-  library(Formula);
-  library(geosphere);
-  library(gstat);
-  library(sp);
-  library(rgdal);
-  library(rARPACK);
-  library(mixlm);
-  library(MASS);
-  library(georob);
-  library(mvtnorm);
-  library(optimx);
-  library(matrixcalc);
   
   if(projected == FALSE){
     proj4string(DatR) =  "+proj=longlat +datum=WGS84";
     proj4string(DatY) = "+proj=longlat +datum=WGS84";
   }
   
-
+  
   ## estimation of theta obtained via classic geostatistical methods, as the starting point of optimization
   vgm1_formula <- as.formula(paste(VarR,"~","1"));
   vgm1 <- variogram(vgm1_formula, DatR, cutoff = cutoff);
@@ -67,7 +59,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_mis
   VSAMPLE <<- Vsample[[1]]
   
   if(isTRUE(Variogram_Model == "Exp")){
-  
+    
     function_lists <- list(
       
       function(par, gs){
@@ -85,7 +77,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_mis
         
         Omega_eig <- eigen(Omega)$values;
         Omega_det <- sum(log(abs(Omega_eig)));
-        value <- 0.5*Omega_det + 0.5*matrix.trace(solve(Omega, Vsample)); 
+        value <- 0.5*Omega_det + 0.5*matrix.trace(solve(Omega, Vsample));
         #value <- Omega_det + t(Rainfall-m)%*%solve(Omega,Rainfall-m);
         
         #print(psill);
@@ -97,7 +89,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_mis
       }
       
     )
-  
+    
   }
   
   gs_dat <- list(Vsample = Vsample[[1]], Dist = Dist[[1]]);
@@ -107,8 +99,8 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_mis
   upper_values <- c(psill = Inf, range = Inf);
   
   # minimization of Kullback-Leibler Distance
-  mle_theta_result <- opm(starting_values, fn = function_lists[[1]], 
-                          lower = lower_values, upper = upper_values, 
+  mle_theta_result <- opm(starting_values, fn = function_lists[[1]],
+                          lower = lower_values, upper = upper_values,
                           method = c("L-BFGS-B"),
                           #method = c("BFGS"),
                           gs = gs_dat);
@@ -120,7 +112,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_mis
   if(Plot == TRUE){
     
     P2 <<- plot(vgm1,vgm(psill_mle, "Exp", range_mle));
-  
+    
   }
   
   num_R <- length(DatR@data[[VarR]]);
@@ -220,16 +212,16 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, Variogram_Model, is_cov_mis
   #bootstrap_std <- matrix(nrow = nrow(beta_bootstrap), ncol = 1, 0);
   
   #for(i in 1:nrow(beta_bootstrap)){
-    
+  
   #  bootstrap_mean[i] <- mean(beta_bootstrap[i, ]);
   #  bootstrap_std[i] <- sd(beta_bootstrap[i, ]);
- 
+  
   #}
   
   # rownames(bootstrap_mean) <- row.names(beta_bootstrap);
   #rownames(bootstrap_std) <- row.names(beta_bootstrap);
   
-  #bootstrap_results <- list(bootstrap_mean = bootstrap_mean, 
+  #bootstrap_results <- list(bootstrap_mean = bootstrap_mean,
   #                          bootstrap_std = bootstrap_std
   #);
   
