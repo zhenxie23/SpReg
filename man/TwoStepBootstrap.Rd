@@ -2,47 +2,50 @@
 % Please edit documentation in R/TwoStepBootstrap.R
 \name{TwoStepBootstrap}
 \alias{TwoStepBootstrap}
-\title{Estimation and Inference for Two-Step Estimator including OLS, GLS, Krig-in Regress, and Bootstrap}
+\title{Estimation and Inference for Two-Step Estimators}
 \usage{
 TwoStepBootstrap(
   DatR,
   VarR,
   DatY,
   VarY,
-  Variogram_Model,
-  is_cov_misspecified,
-  is_den_misspecified,
-  Plot = TRUE,
+  variogram.model,
+  is.cov.misspecified,
+  is.den.misspecified,
+  plot.start.value = TRUE,
   cutoff,
   cutoff_u,
-  Start_Value_Method = 2,
+  start.value.method = 2,
   projected = FALSE
 )
 }
 \arguments{
-\item{DatR}{variable R, a spatial object, see function coordinates()}
+\item{DatR}{explanatory variable R, a spatial object, see \link[gstat:coordinates]{coordintes()}}
 
 \item{VarR}{name of variable R}
 
-\item{DatY}{variable Y, a spatial object, see function coordinates()}
+\item{DatY}{outcome variable Y, a spatial object, see \link[gstat:coordinates]{coordintes()}}
 
 \item{VarY}{name of variable Y}
 
-\item{Variogram_Model}{variogram model, output of}
+\item{variogram.model}{variogram model type, e.g. "Exp", "Sph", "Gau", "Mat"}
 
-\item{is_cov_misspecified}{logical; if TRUE, the covariance function is misspecified}
+\item{is.cov.misspecified}{logical; if TRUE, the covariance function is misspecified}
 
-\item{is_den_misspecified}{logical; if TRUE, the density function is not Gaussian distribution.}
+\item{is.den.misspecified}{logical; if TRUE, the density function is not Gaussian distribution.}
 
-\item{Start_Value_Method}{fitting method, used by gstat, see function fit.variogram()}
+\item{plot.start.value}{logical, if TRUE, plot the variogram and the fitted variogram curve corresponding to starting values}
 
-\item{projected}{logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km)}
+\item{start.value.method}{fitting method, see \link[gstat:fit.variogram]{fit.variogram()}}
 
-\item{Plot_Start_Value}{logical, plot the variogram and the fitted variogram curve corresponding to starting values}
+\item{projected}{logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km) are computed.}
 }
 \value{
 
 }
 \description{
-This function implements the esmation and inference for two-step estimators.
+This function implements the esmation and inference for two-step estimators including Krig-and-regress(OLS), Krig-and-regress(GLS), two-step bootstrap.
+}
+\seealso{
+\link{gstat}
 }
