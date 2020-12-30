@@ -43,7 +43,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
 
   # distance matrix
   ## need to divide into several groups
-  Dist <- list(spDists(DatR));
+  Dist <- list(sp::spDists(DatR));
 
   # Rainfall
   ## need to divide into several groups
