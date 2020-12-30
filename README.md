@@ -1,2 +1,1 @@
-# SpReg
-A Toolkit of Spatial Econometrics with Misaligned Data
+# SpReg: A Toolkit of Spatial Econometrics with Misaligned Data
