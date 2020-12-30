@@ -40,3 +40,8 @@ DatY$Y <- log(DatY$CL);
 sp::coordinates(DatY) <- ~LON_DD+LAT_DD;
 sp::proj4string(DatY) =  "+proj=longlat +datum=WGS84";
 ```
+
+*Estimation and Inference for Two-Step Estimators*
+```r
+TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE, cutoff = 295, cutoff_u = 40);
+```
