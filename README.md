@@ -17,7 +17,7 @@ devtools::install_github("zhenxie23/SpReg")
 
 Example: [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888)
 ------------------------------
-We use the dataet of [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888). There are 558 observations over an area of 400,000 squared kilometers.
+We use the dataset of [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888). There are 558 observations over an area of 400,000 squared kilometers.
 ```r
 library(SpReg)
 rivers <- read.csv(system.file("extdata", "rivers.csv", package = "SpReg"))
