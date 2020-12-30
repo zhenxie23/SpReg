@@ -15,7 +15,7 @@ Installation
 devtools::install_github("zhenxie23/SpReg")
 ```
 
-Replication Example: [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888)
+Example: [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888)
 ------------------------------
 We use the dataet of [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888). There are 558 observations over an area of 400,000 squared kilometers.
 ```r
@@ -44,4 +44,49 @@ sp::proj4string(DatY) =  "+proj=longlat +datum=WGS84";
 *Estimation and Inference for Two-Step Estimators*
 ```r
 TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE, cutoff = 295, cutoff_u = 40);
+#> 
+#> Point estimates for variogram parameters (psill, range)
+#> TwoStep_Results$theta.mean
+#>  3.972287 11.138475
+#>
+#> Variance Matrix for variogram parameters
+#> TwoStep_Results$theta.cov[[1]]
+#>          [,1]      [,2]
+#> [1,] 0.1367916 0.2908164
+#> [2,] 0.2908164 3.6991200
+#>
+#> Point estimates for Krig-and-OLS
+#> TwoStep_Results$ols.model$coefficients
+#> (Intercept)       R_hat 
+#> 5.1259671  -0.4286655 
+#>
+#> Standard errors for Krig-and-OLS
+#> sqrt(vcov(TwoStep_Results$ols.model)[1,1])
+#> 0.1439503
+#> sqrt(vcov(TwoStep_Results$ols.model)[2,2])
+#> 0.06694521
+#>
+#> Point estimates for Krig-and-GLS
+#> TwoStep_Results$gls.model
+#>           [,1]
+#> [1,]  5.137784
+#> [2,] -0.388875
+#>
+#> Standard Errors for Krig-and-GLS
+#> TwoStep_Results$gls.sd[1,1]
+#> 0.1481041
+#> TwoStep_Results$gls.sd[2,2]
+#> 0.004786974
+#>
+#> Point Estimates for Two-Step Bootstrap
+#> mean(TwoStep_Results$bootstrap.results[1,])
+#> 5.152734
+#> mean(TwoStep_Results$bootstrap.results[2,])
+#> -0.442036
+#>
+#> Standard errors for Two-Step Bootstrap
+#> sd(TwoStep_Results$bootstrap.results[1,])
+#> 0.1778505
+#> sd(TwoStep_Results$bootstrap.results[2,])
+#> 0.09193148
 ```
