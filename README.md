@@ -12,7 +12,7 @@ Installation
 
 `SpReg` can be installed from its GitHub repository via
 ```r
-devtools::install_github("zhenxie23/SpReg")
+devtools::install_github("zhenxie23/SpReg", ref = 'main')
 ```
 
 Example: [Madsen et al. (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1002/env.888)
