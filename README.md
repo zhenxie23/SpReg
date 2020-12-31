@@ -23,7 +23,7 @@ library(SpReg)
 rivers <- read.csv(system.file("extdata", "rivers.csv", package = "SpReg"))
 rivers <- rivers[which(rivers$FOR_NLCD<100),]
 ```
-The simulation is implemented as follows: for each run, the 558 locations in the data set are randomly spilt into two equal halves. The covariate R = logit(for.nlcd) is assumed to have been observed on one half, and the outcome variable Y = log(cl) is assumed to have been observed on the other. This creates a misaligned data set. For each round of the cross-validation exercise, all estimates, along with their standar errors, are calculated. The performance of estimators can then be compare with each other.
+The simulation is implemented as follows: for each run, the 558 locations in the data set are randomly split into two equal halves. The covariate R = logit(for.nlcd) is assumed to have been observed on one half, and the outcome variable Y = log(cl) is assumed to have been observed on the other. This creates a misaligned data set. For each round of the cross-validation exercise, all estimates, along with their standard errors, are calculated. The performance of estimators can then be compared with each other.
 ```r
 train_set <- sample(1:558,277);
 test_set <- setdiff(1:558,train_set);
