@@ -19,7 +19,8 @@
 #' @param cutoff.res cutoff for sample variogram of regression residuals
 #' @param start.value.method fitting method, see \link[gstat:fit.variogram]{fit.variogram()}
 #' @param projected logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km) are computed.
-#' @return \item{\code{vario.par.point.est}}{point estimates for variogram parameters(psill, range)}
+#' @return \item{\code{num.obs}}{the number of observations}
+#'         \item{\code{vario.par.point.est}}{point estimates for variogram parameters(psill, range)}
 #'         \item{\code{vario.par.var.mat}}{estimated variance-covariance matrix for variogram parameters(psill, range)}
 #'         \item{\code{ols.point.est}}{point estimates for Krig-and-OLS estimator}
 #'         \item{\code{ols.var.mat}}{estimated variance-covariance matrix for Krig-and-OLS estimator}
@@ -118,10 +119,10 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
         value <- 0.5*Omega_det + 0.5*(matrixcalc::matrix.trace(solve(Omega, Vsample)));
         #value <- Omega_det + t(Rainfall-m)%*%solve(Omega,Rainfall-m);
 
-        print(psill);
-        print(range);
-        print(value);
-        print("------------------------");
+        #print(psill);
+        #print(range);
+        #print(value);
+        #print("------------------------");
 
         return(value);
       }
@@ -164,13 +165,13 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
   #m2 <- matrix(nrow = num_R, ncol = 1, 0);
   K1 <- sapply(1:num_R, function(j){sapply(1:num_Y, function(i){psill_mle*exp(-dist_train_test[i,j]/range_mle)})});
   K2 <- sapply(1:num_R, function(i){sapply(1:num_R, function(j){psill_mle*exp(-Dist[[1]][i,j]/range_mle)})});
-  R_hat <- m1+K1%*%solve(K2)%*%(Rainfall[[1]]-m2);
+  R.hat <- m1+K1%*%solve(K2)%*%(Rainfall[[1]]-m2);
 
-  beta_mle <- lm(DatY[[VarY]] ~ R_hat)$coefficients;
+  beta_mle <- lm(DatY[[VarY]] ~ R.hat)$coefficients;
 
 
   # OLS analysis
-  ols_model <- lm(DatY[[VarY]] ~ R_hat);
+  ols_model <- lm(DatY[[VarY]] ~ R.hat);
 
   # GLS analysis
   DatY$residuals <- ols_model$residuals;
@@ -189,8 +190,8 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
 
   K3 <- sapply(1:num_Y, function(j){sapply(1:num_Y, function(i){ nug_res+psill_res*exp(-dist_test[i,j]/range_res)})});
   my_weights <- solve(K3);
-  #gls_model <- lm.gls(DatY$Y ~ R_hat, W = my_weights);
-  X_hat <- cbind(rep(1,length(R_hat)), R_hat);
+  #gls_model <- lm.gls(DatY$Y ~ R.hat, W = my_weights);
+  X_hat <- cbind(rep(1,length(R.hat)), R.hat);
   gls_estimate <- solve(t(X_hat)%*%my_weights%*%X_hat)%*%(t(X_hat)%*%my_weights%*%DatY[[VarY]]);
   gls_sd <- solve(t(X_hat)%*%my_weights%*%X_hat);
 
@@ -283,6 +284,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
 
   Output = list(
     # variogram_R = starting_point_variogram,
+    num.obs = length(DatY[[VarY]]),
     vario.par.point.est = c(psill = psill_mle, range = range_mle),
     vario.par.var.mat = vario_par_var_mat,
     ols.point.est = ols_model$coefficients,
@@ -293,6 +295,118 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
     tsbs.var.mat = bootstrap_cov
   );
 
+  Output$call <- match.call();
+  class(Output) <- "TwoStepBootstrap";
+
   return(Output);
+
+}
+
+
+
+
+#'@describeIn  TwoStepBootstrap \code{summary} method for class "\code{TwoStepBootstrap}".
+#'@param object class \code{TwoStepBootstrap} objects.
+#'@export
+summary.TwoStepBootstrap <- function(object, ...) {
+  x <- object
+  args <- list(...)
+  if (is.null(args[['alpha']])) { alpha <- 0.05 } else { alpha <- args[['alpha']] }
+  p <- length(x$ols.point.est);
+  var_string <- names(x$ols.point.est);
+
+  ### print output
+  cat(paste(rep("=", 20+ 4 + 10 + 10 + 25), collapse=""));
+  cat("\n")
+
+  cat(format(" "            , width= 20))
+  cat(format(" "            , width= 4))
+  cat(format("Point"        , width= 10,  justify="right"))
+  cat(format("Std."         , width= 10,  justify="right"))
+  cat(format(" "            , width= 25,  justify="centre"))
+  cat("\n")
+
+  cat(format(" "        , width=20))
+  cat(format("n"        , width=4 ,  justify="left"))
+  cat(format("Est."     , width=10,  justify="right"))
+  cat(format("Error"    , width=10,  justify="right"))
+  cat(format(paste("[ ", floor((1-alpha)*100), "%", " C.I. ]", sep=""), width=25, justify="centre"))
+  cat("\n")
+
+  cat(paste(rep("=", 20+ 4 + 10 + 10 + 25), collapse=""));
+  cat("\n")
+
+  cat(format("Krig-and-OLS", justify = "left"));
+  cat("\n")
+
+  for(j in 1:p){
+    CI_l <- x$ols.point.est[j]-qnorm(1-alpha/2)*sqrt(x$ols.var.mat[j,j]);
+    CI_r <- x$ols.point.est[j]+qnorm(1-alpha/2)*sqrt(x$ols.var.mat[j,j]);
+    cat(format(var_string[j]  , width= 20,   justify = "left"))
+    cat(format(sprintf("%3.0f", x$num.obs),
+                                width= 4,   justify = "left"))
+    cat(format(sprintf("%3.3f", x$ols.point.est[j]),
+                                width= 10,  justify="right"))
+    cat(format(sprintf("%3.3f", sqrt(x$ols.var.mat[j,j])),
+                                width= 10,  justify="right"))
+    cat(format(paste("[", sprintf("%3.3f", CI_l), " , ", sep=""),
+                                width=14, justify="right"))
+    cat(format(paste(sprintf("%3.3f", CI_r), "]", sep=""),
+                                width=11, justify="left"))
+    cat("\n")
+
+  }
+
+  cat(paste(rep("-", 20+ 4 + 10 + 10 + 25), collapse=""));
+  cat("\n")
+
+
+  cat(format("Krig-and-GLS", justify = "left"));
+  cat("\n")
+
+  for(j in 1:p){
+    CI_l <- x$gls.point.est[j]-qnorm(1-alpha/2)*sqrt(x$gls.var.mat[j,j]);
+    CI_r <- x$gls.point.est[j]+qnorm(1-alpha/2)*sqrt(x$gls.var.mat[j,j]);
+    cat(format(var_string[j]  , width= 20,   justify = "left"))
+    cat(format(sprintf("%3.0f", x$num.obs),
+               width= 4,   justify = "left"))
+    cat(format(sprintf("%3.3f", x$gls.point.est[j]),
+               width= 10,  justify="right"))
+    cat(format(sprintf("%3.3f", sqrt(x$gls.var.mat[j,j])),
+               width= 10,  justify="right"))
+    cat(format(paste("[", sprintf("%3.3f", CI_l), " , ", sep=""),
+               width=14, justify="right"))
+    cat(format(paste(sprintf("%3.3f", CI_r), "]", sep=""),
+               width=11, justify="left"))
+    cat("\n")
+
+  }
+
+  cat(paste(rep("-", 20+ 4 + 10 + 10 + 25), collapse=""));
+  cat("\n")
+
+
+  cat(format("Two Step Bootstrap", justify = "left"));
+  cat("\n")
+
+  for(j in 1:p){
+    CI_l <- x$tsbs.point.est[j]-qnorm(1-alpha/2)*sqrt(x$tsbs.var.mat[j,j]);
+    CI_r <- x$tsbs.point.est[j]+qnorm(1-alpha/2)*sqrt(x$tsbs.var.mat[j,j]);
+    cat(format(var_string[j]  , width= 20,   justify = "left"))
+    cat(format(sprintf("%3.0f", x$num.obs),
+               width= 4,   justify = "left"))
+    cat(format(sprintf("%3.3f", x$tsbs.point.est[j]),
+               width= 10,  justify="right"))
+    cat(format(sprintf("%3.3f", sqrt(x$tsbs.var.mat[j,j])),
+               width= 10,  justify="right"))
+    cat(format(paste("[", sprintf("%3.3f", CI_l), " , ", sep=""),
+               width=14, justify="right"))
+    cat(format(paste(sprintf("%3.3f", CI_r), "]", sep=""),
+               width=11, justify="left"))
+    cat("\n")
+
+  }
+
+  cat(paste(rep("=", 20+ 4 + 10 + 10 + 25), collapse=""));
 
 }

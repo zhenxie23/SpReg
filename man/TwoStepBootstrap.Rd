@@ -2,12 +2,15 @@
 % Please edit documentation in R/TwoStepBootstrap.R
 \name{TwoStepBootstrap}
 \alias{TwoStepBootstrap}
+\alias{summary.TwoStepBootstrap}
 \title{Estimation and Inference for Two-Step Estimators}
 \usage{
 TwoStepBootstrap(DatR, VarR, DatY, VarY, variogram.model,
                    is.cov.misspecified, is.den.misspecified,
                    plot.start.value = TRUE, cutoff.R, cutoff.res,
                    start.value.method = 2, projected = FALSE)
+
+\method{summary}{TwoStepBootstrap}(object, ...)
 }
 \arguments{
 \item{DatR}{explanatory variable R, a spatial object, see \link[sp:coordinates]{coordintes()}}
@@ -33,9 +36,12 @@ TwoStepBootstrap(DatR, VarR, DatY, VarY, variogram.model,
 \item{start.value.method}{fitting method, see \link[gstat:fit.variogram]{fit.variogram()}}
 
 \item{projected}{logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km) are computed.}
+
+\item{object}{class \code{TwoStepBootstrap} objects.}
 }
 \value{
-\item{\code{vario.par.point.est}}{point estimates for variogram parameters(psill, range)}
+\item{\code{num.obs}}{the number of observations}
+        \item{\code{vario.par.point.est}}{point estimates for variogram parameters(psill, range)}
         \item{\code{vario.par.var.mat}}{estimated variance-covariance matrix for variogram parameters(psill, range)}
         \item{\code{ols.point.est}}{point estimates for Krig-and-OLS estimator}
         \item{\code{ols.var.mat}}{estimated variance-covariance matrix for Krig-and-OLS estimator}
@@ -47,6 +53,11 @@ TwoStepBootstrap(DatR, VarR, DatY, VarY, variogram.model,
 \description{
 This function implements the esmation and inference for two-step estimators including Krig-and-regress(OLS), Krig-and-regress(GLS), two-step bootstrap.
 }
+\section{Methods (by generic)}{
+\itemize{
+\item \code{summary}: \code{summary} method for class "\code{TwoStepBootstrap}".
+}}
+
 \examples{
 library(SpReg)
 rivers <- read.csv(system.file("extdata", "rivers.csv", package = "SpReg"))
