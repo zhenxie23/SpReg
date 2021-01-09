@@ -43,59 +43,25 @@ sp::proj4string(DatY) =  "+proj=longlat +datum=WGS84";
 
 **Estimation and Inference for Two-Step Estimators**
 ```r
-TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE, cutoff = 295, cutoff_u = 40);
-```
+TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE,
+                                    cutoff.R = 295, cutoff.res = 40);
+summary(TwoStep_Results)
 
-- Point estimates for variogram parameters (psill, range)
-```r
-#> TwoStep_Results$theta.mean
-#>  3.972287 11.138475
-```
-- Variance Matrix for variogram parameters
-```r
-#> TwoStep_Results$theta.cov[[1]]
-#>          [,1]      [,2]
-#> [1,] 0.1367916 0.2908164
-#> [2,] 0.2908164 3.6991200
-```
-- Point estimates for Krig-and-OLS
-```r
-#> TwoStep_Results$ols.model$coefficients
-#> (Intercept)       R_hat 
-#> 5.1259671  -0.4286655 
-```
-- Standard errors for Krig-and-OLS
-```r
-#> sqrt(vcov(TwoStep_Results$ols.model)[1,1])
-#> 0.1439503
-#> sqrt(vcov(TwoStep_Results$ols.model)[2,2])
-#> 0.06694521
-```
-- Point estimates for Krig-and-GLS
-```r
-#> TwoStep_Results$gls.model
-#>           [,1]
-#> [1,]  5.137784
-#> [2,] -0.388875
-```
-- Standard Errors for Krig-and-GLS
-```r
-#> TwoStep_Results$gls.sd[1,1]
-#> 0.1481041
-#> TwoStep_Results$gls.sd[2,2]
-#> 0.004786974
-```
-- Point Estimates for Two-Step Bootstrap
-```r
-#> mean(TwoStep_Results$bootstrap.results[1,])
-#> 5.152734
-#> mean(TwoStep_Results$bootstrap.results[2,])
-#> -0.442036
-```
-- Standard errors for Two-Step Bootstrap
-```r
-#> sd(TwoStep_Results$bootstrap.results[1,])
-#> 0.1778505
-#> sd(TwoStep_Results$bootstrap.results[2,])
-#> 0.09193148
+
+=====================================================================
+                             Point      Std.                         
+                    n         Est.     Error      [ 95% C.I. ]       
+=====================================================================
+Krig-and-OLS
+(Intercept)         281      5.080     0.129     [4.827 , 5.334]     
+R.hat               281     -0.395     0.058    [-0.509 , -0.281]    
+---------------------------------------------------------------------
+Krig-and-GLS
+(Intercept)         281      5.054     0.129     [4.801 , 5.306]     
+R.hat               281     -0.368     0.058    [-0.482 , -0.254]    
+---------------------------------------------------------------------
+Two Step Bootstrap
+(Intercept)         281      5.094     0.146     [4.807 , 5.381]     
+R.hat               281     -0.409     0.067    [-0.540 , -0.278]    
+=====================================================================
 ```
