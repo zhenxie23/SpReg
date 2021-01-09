@@ -4,27 +4,17 @@
 \alias{TwoStepBootstrap}
 \title{Estimation and Inference for Two-Step Estimators}
 \usage{
-TwoStepBootstrap(
-  DatR,
-  VarR,
-  DatY,
-  VarY,
-  variogram.model,
-  is.cov.misspecified,
-  is.den.misspecified,
-  plot.start.value = TRUE,
-  cutoff,
-  cutoff_u,
-  start.value.method = 2,
-  projected = FALSE
-)
+TwoStepBootstrap(DatR, VarR, DatY, VarY, variogram.model,
+                   is.cov.misspecified, is.den.misspecified,
+                   plot.start.value = TRUE, cutoff.R, cutoff.res,
+                   start.value.method = 2, projected = FALSE)
 }
 \arguments{
-\item{DatR}{explanatory variable R, a spatial object, see \link[gstat:coordinates]{coordintes()}}
+\item{DatR}{explanatory variable R, a spatial object, see \link[sp:coordinates]{coordintes()}}
 
 \item{VarR}{name of variable R}
 
-\item{DatY}{outcome variable Y, a spatial object, see \link[gstat:coordinates]{coordintes()}}
+\item{DatY}{outcome variable Y, a spatial object, see \link[sp:coordinates]{coordintes()}}
 
 \item{VarY}{name of variable Y}
 
@@ -36,16 +26,50 @@ TwoStepBootstrap(
 
 \item{plot.start.value}{logical, if TRUE, plot the variogram and the fitted variogram curve corresponding to starting values}
 
+\item{cutoff.R}{cutoff for sample variogram of variable R}
+
+\item{cutoff.res}{cutoff for sample variogram of regression residuals}
+
 \item{start.value.method}{fitting method, see \link[gstat:fit.variogram]{fit.variogram()}}
 
 \item{projected}{logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km) are computed.}
 }
 \value{
-
+\item{\code{vario.par.point.est}}{point estimates for variogram parameters(psill, range)}
+        \item{\code{vario.par.var.mat}}{estimated variance-covariance matrix for variogram parameters(psill, range)}
+        \item{\code{ols.point.est}}{point estimates for Krig-and-OLS estimator}
+        \item{\code{ols.var.mat}}{estimated variance-covariance matrix for Krig-and-OLS estimator}
+        \item{\code{gls.point.est}}{point estimates for Krig-and-GLS estimator}
+        \item{\code{gls.var.mat}}{estimated variance-covariance matrix for Krig-and-GLS estimator}
+        \item{\code{tsbs.point.est}}{point estimates for Two-Step Bootstrap estimator}
+        \item{\code{tsbs.var.mat}}{estimated variance-covariance matrix for Two-Step Bootstrap estimator}
 }
 \description{
 This function implements the esmation and inference for two-step estimators including Krig-and-regress(OLS), Krig-and-regress(GLS), two-step bootstrap.
 }
+\examples{
+library(SpReg)
+rivers <- read.csv(system.file("extdata", "rivers.csv", package = "SpReg"))
+
+rivers <- rivers[which(rivers$FOR_NLCD<100),]
+train_set <- sample(1:558,277);
+test_set <- setdiff(1:558,train_set);
+rivers_train <- rivers[train_set, ];
+rivers_test <- rivers[test_set, ];
+
+DatR <- rivers_train[,c("FOR_NLCD", "LAT_DD", "LON_DD")];
+DatR$X <- log((DatR$FOR_NLCD)/(100-DatR$FOR_NLCD));
+sp::coordinates(DatR) <- ~LON_DD+LAT_DD;
+sp::proj4string(DatR) =  "+proj=longlat +datum=WGS84";
+DatY <- rivers_test[, c("CL","LAT_DD","LON_DD")];
+DatY$Y <- log(DatY$CL);
+sp::coordinates(DatY) <- ~LON_DD+LAT_DD;
+sp::proj4string(DatY) =  "+proj=longlat +datum=WGS84";
+
+TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE,
+                                    cutoff.R = 295, cutoff.res = 40);
+
+}
 \seealso{
-\link{gstat}
+\link{sp}, \link{gstat}
 }

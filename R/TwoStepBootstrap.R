@@ -1,23 +1,60 @@
 #' Estimation and Inference for Two-Step Estimators
 #'
 #' @description This function implements the esmation and inference for two-step estimators including Krig-and-regress(OLS), Krig-and-regress(GLS), two-step bootstrap.
-#' @param DatR explanatory variable R, a spatial object, see \link[gstat:coordinates]{coordintes()}
+#'
+#' @usage TwoStepBootstrap(DatR, VarR, DatY, VarY, variogram.model,
+#'                    is.cov.misspecified, is.den.misspecified,
+#'                    plot.start.value = TRUE, cutoff.R, cutoff.res,
+#'                    start.value.method = 2, projected = FALSE)
+#'
+#' @param DatR explanatory variable R, a spatial object, see \link[sp:coordinates]{coordintes()}
 #' @param VarR name of variable R
-#' @param DatY outcome variable Y, a spatial object, see \link[gstat:coordinates]{coordintes()}
+#' @param DatY outcome variable Y, a spatial object, see \link[sp:coordinates]{coordintes()}
 #' @param VarY name of variable Y
 #' @param variogram.model variogram model type, e.g. "Exp", "Sph", "Gau", "Mat"
 #' @param is.cov.misspecified logical; if TRUE, the covariance function is misspecified
 #' @param is.den.misspecified logical; if TRUE, the density function is not Gaussian distribution.
 #' @param plot.start.value logical, if TRUE, plot the variogram and the fitted variogram curve corresponding to starting values
+#' @param cutoff.R cutoff for sample variogram of variable R
+#' @param cutoff.res cutoff for sample variogram of regression residuals
 #' @param start.value.method fitting method, see \link[gstat:fit.variogram]{fit.variogram()}
 #' @param projected logical; if FALSE, data are assumed to be unprojected, meaning decimal longitude/latitude. For projected data, Euclidian distances are computed, for unprojected great circle distances(km) are computed.
-#' @return
-#' @seealso \link{gstat}
+#' @return \item{\code{vario.par.point.est}}{point estimates for variogram parameters(psill, range)}
+#'         \item{\code{vario.par.var.mat}}{estimated variance-covariance matrix for variogram parameters(psill, range)}
+#'         \item{\code{ols.point.est}}{point estimates for Krig-and-OLS estimator}
+#'         \item{\code{ols.var.mat}}{estimated variance-covariance matrix for Krig-and-OLS estimator}
+#'         \item{\code{gls.point.est}}{point estimates for Krig-and-GLS estimator}
+#'         \item{\code{gls.var.mat}}{estimated variance-covariance matrix for Krig-and-GLS estimator}
+#'         \item{\code{tsbs.point.est}}{point estimates for Two-Step Bootstrap estimator}
+#'         \item{\code{tsbs.var.mat}}{estimated variance-covariance matrix for Two-Step Bootstrap estimator}
+#' @examples
+#' library(SpReg)
+#' rivers <- read.csv(system.file("extdata", "rivers.csv", package = "SpReg"))
+#'
+#' rivers <- rivers[which(rivers$FOR_NLCD<100),]
+#' train_set <- sample(1:558,277);
+#' test_set <- setdiff(1:558,train_set);
+#' rivers_train <- rivers[train_set, ];
+#' rivers_test <- rivers[test_set, ];
+#'
+#' DatR <- rivers_train[,c("FOR_NLCD", "LAT_DD", "LON_DD")];
+#' DatR$X <- log((DatR$FOR_NLCD)/(100-DatR$FOR_NLCD));
+#' sp::coordinates(DatR) <- ~LON_DD+LAT_DD;
+#' sp::proj4string(DatR) =  "+proj=longlat +datum=WGS84";
+#' DatY <- rivers_test[, c("CL","LAT_DD","LON_DD")];
+#' DatY$Y <- log(DatY$CL);
+#' sp::coordinates(DatY) <- ~LON_DD+LAT_DD;
+#' sp::proj4string(DatY) =  "+proj=longlat +datum=WGS84";
+#'
+#' TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE,
+#'                                     cutoff.R = 295, cutoff.res = 40);
+#'
+#' @seealso \link{sp}, \link{gstat}
 #' @export
 
 TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
                              is.cov.misspecified, is.den.misspecified,
-                             plot.start.value= TRUE,                                                                cutoff, cutoff_u,
+                             plot.start.value= TRUE, cutoff.R, cutoff.res,
                              start.value.method = 2, projected = FALSE){
 
   if(projected == FALSE){
@@ -28,14 +65,14 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
 
   ## estimation of theta obtained via classic geostatistical methods, as the starting point of optimization
   vgm1_formula <- as.formula(paste(VarR,"~","1"));
-  vgm1 <- gstat::variogram(vgm1_formula, DatR, cutoff = cutoff);
+  vgm1 <- gstat::variogram(vgm1_formula, DatR, cutoff = cutoff.R);
   #vgm1 <- variogram(vgm1_formula, DatR);
   model1 <- gstat::vgm(psill = 4, variogram.model, range = 10);
   mfit <- gstat::fit.variogram(vgm1, model1, fit.method = start.value.method);
 
   # plot the staring points
   if(plot.start.value == TRUE){
-    P1 <- plot(vgm1, model = mfit);
+    plot(vgm1, model = mfit);
   }
 
   starting_values <- c(psill = mfit$psill[1], range = mfit$range[1]);
@@ -52,7 +89,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
   Vsample <- list();
   Formula_R <- as.formula(paste(VarR,"~","1"));
   g_R = gstat::gstat(NULL, VarR, Formula_R, DatR);
-  Cov_sample_RR <- gstat::variogram(g_R, covariogram = TRUE, cutoff = cutoff);
+  Cov_sample_RR <- gstat::variogram(g_R, covariogram = TRUE, cutoff = cutoff.R);
   #Cov_sample_RR <- variogram(g_R, covariogram = TRUE);
   Cov_sample_RR <- Cov_sample_RR[order(Cov_sample_RR$dist),];
   Vsample[[1]] <- SampleCovarianceMatrix(Cov_sample_RR, Dist[[1]]);
@@ -81,10 +118,10 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
         value <- 0.5*Omega_det + 0.5*(matrixcalc::matrix.trace(solve(Omega, Vsample)));
         #value <- Omega_det + t(Rainfall-m)%*%solve(Omega,Rainfall-m);
 
-        #print(psill);
-        #print(range);
-        #print(value);
-        #print("------------------------");
+        print(psill);
+        print(range);
+        print(value);
+        print("------------------------");
 
         return(value);
       }
@@ -100,10 +137,11 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
   upper_values <- c(psill = Inf, range = Inf);
 
   # minimization of Kullback-Leibler Distance
-  mle_theta_result <- optimx::opm(starting_values, fn = function_lists[[1]],
-                                  lower = lower_values, upper = upper_values,
-                                  method = c("L-BFGS-B"),
-                                  #method = c("BFGS"),
+  mle_theta_result <- optimx::optimx(starting_values, fn = function_lists[[1]],
+                                  #lower = lower_values, upper = upper_values,
+                                  #method = c("L-BFGS-B"),
+                                  method = c("BFGS"),
+                                  control = list(maximize = FALSE, fnscale = 1.0),
                                   gs = gs_dat);
 
   # Point Estimation
@@ -112,7 +150,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
 
   if(plot.start.value == TRUE){
 
-    P2 <- plot(vgm1,model = gstat::vgm(psill_mle, "Exp", range_mle));
+    plot(vgm1,model = gstat::vgm(psill_mle, "Exp", range_mle));
 
   }
 
@@ -136,7 +174,7 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
 
   # GLS analysis
   DatY$residuals <- ols_model$residuals;
-  vgm_res <- gstat::variogram(residuals~1, DatY, cutoff = cutoff_u);
+  vgm_res <- gstat::variogram(residuals~1, DatY, cutoff = cutoff.res);
   #vgm_res <- variogram(residuals~1, DatY);
   mfit_res <- gstat::fit.variogram(vgm_res, gstat::vgm(variogram.model),
                                    fit.method = start.value.method);
@@ -144,8 +182,8 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
   nug_res <- mfit_res$psill[1];
   dist_test <- sp::spDists(DatY);
 
-  #vgm_res <- variogram(residuals~1, DatY, cutoff = cutoff_u, covariogram = TRUE);
-  #Cov_sample_RR <- variogram(g_R, covariogram = TRUE, cutoff = cutoff_u);
+  #vgm_res <- variogram(residuals~1, DatY, cutoff = cutoff.res, covariogram = TRUE);
+  #Cov_sample_RR <- variogram(g_R, covariogram = TRUE, cutoff = cutoff.res);
   #vgm_res <- vgm_res[order(vgm_res$dist),];
   #K3 <- SampleCovarianceMatrix(vgm_res, dist_test);
 
@@ -210,32 +248,49 @@ TwoStepBootstrap <- function(DatR, VarR, DatY, VarY, variogram.model,
     beta_bootstrap <- cbind(beta_bootstrap, lm(Y_B ~ R_B)$coefficients);
 
   }
-  #bootstrap_mean <- matrix(nrow = nrow(beta_bootstrap), ncol = 1, 0);
-  #bootstrap_std <- matrix(nrow = nrow(beta_bootstrap), ncol = 1, 0);
 
-  #for(i in 1:nrow(beta_bootstrap)){
+  bootstrap_mean <- matrix(nrow = 1, ncol = nrow(beta_bootstrap), 0);
+  bootstrap_cov <- matrix(nrow = nrow(beta_bootstrap), ncol = nrow(beta_bootstrap), 0);
 
-  #  bootstrap_mean[i] <- mean(beta_bootstrap[i, ]);
-  #  bootstrap_std[i] <- sd(beta_bootstrap[i, ]);
+  for(i in 1:nrow(beta_bootstrap)){
 
-  #}
+    bootstrap_mean[i] <- mean(beta_bootstrap[i, ]);
 
-  # rownames(bootstrap_mean) <- row.names(beta_bootstrap);
-  #rownames(bootstrap_std) <- row.names(beta_bootstrap);
+  }
 
-  #bootstrap_results <- list(bootstrap_mean = bootstrap_mean,
-  #                          bootstrap_std = bootstrap_std
-  #);
+  for(i in 1:nrow(beta_bootstrap)){
+    for(j in 1:nrow(beta_bootstrap)){
+      bootstrap_cov[i,j] <- cov(beta_bootstrap[i, ],beta_bootstrap[j, ]);
+    }
+  }
+
+  # formatting the outputs
+
+  var_string <- names(ols_model$coefficients);
+  bootstrap_mean <- c(bootstrap_mean);
+  gls_estimate <- c(gls_estimate);
+  names(bootstrap_mean) <- var_string;
+  names(gls_estimate) <- var_string;
+
+  rownames(gls_sd) <- var_string;
+  colnames(gls_sd) <- var_string;
+  rownames(bootstrap_cov) <- var_string;
+  colnames(bootstrap_cov) <- var_string;
+
+  vario_par_var_mat <- V_QMLE[[1]];
+  rownames(vario_par_var_mat) <- c("psill", "range");
+  colnames(vario_par_var_mat) <- c("psill", "range");
 
   Output = list(
     # variogram_R = starting_point_variogram,
-    theta.mean = c(psill_mle, range_mle),
-    theta.cov = V_QMLE,
-    ols.model = ols_model,
-    gls.model = gls_estimate,
-    gls.sd = gls_sd,
-    point.estimate = beta_mle,
-    bootstrap.results = beta_bootstrap
+    vario.par.point.est = c(psill = psill_mle, range = range_mle),
+    vario.par.var.mat = vario_par_var_mat,
+    ols.point.est = ols_model$coefficients,
+    ols.var.mat = vcov(ols_model),
+    gls.point.est = gls_estimate,
+    gls.var.mat = gls_sd,
+    tsbs.point.est = bootstrap_mean,
+    tsbs.var.mat = bootstrap_cov
   );
 
   return(Output);
