@@ -65,3 +65,28 @@ Two Step Bootstrap
 R.hat               281     -0.426     0.074    [-0.571 , -0.281]    
 =====================================================================
 ```
+
+**Estimation and Inference for Minimum Distance Estimator**
+```r
+>MD.Starting.Value <- c(psill = unname(TwoStep_Results$vario.par.point.est[1]),
+>                       range = unname(TwoStep_Results$vario.par.point.est[2]),
+>                       beta = unname(TwoStep_Results[["tsbs.point.est"]][2]),
+>                       beta_std = unname(TwoStep_Results[["tsbs.var.mat"]][2,2]));
+
+>MD_Results <- MinimumDistance(DatR, "X", DatY, "Y", "Exp", MD.Starting.Value,
+>                              cutoff.R = 150, cutoff.YR = 70);
+
+>summary(MD_Results, alpha = 0.05)
+
+
+=====================================================================
+                             Point      Std.                         
+                    n         Est.     Error      [ 95% C.I. ]       
+=====================================================================
+Minimum Distance
+R                   558     -0.344     0.056    [-0.453 , -0.234]    
+=====================================================================
+
+
+```
+
