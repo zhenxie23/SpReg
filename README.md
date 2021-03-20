@@ -43,9 +43,11 @@ sp::proj4string(DatY) =  "+proj=longlat +datum=WGS84";
 
 **Estimation and Inference for Two-Step Estimators**
 ```r
-> TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE,
-                                      cutoff.R = 295, cutoff.res = 40);
-> summary(TwoStep_Results, alpha = 0.05)
+
+TwoStep_Results <- TwoStepBootstrap(DatR, "X", DatY, "Y", "Exp", FALSE, FALSE,
+                                    cutoff.R = 295, cutoff.res = 40);
+
+summary(TwoStep_Results, alpha = 0.05)
 
 
 =====================================================================
@@ -70,15 +72,15 @@ R.hat               281     -0.426     0.074    [-0.571 , -0.281]
 ```r
 
 ## specifying starting value
->MD.Starting.Value <- c(psill = unname(TwoStep_Results$vario.par.point.est[1]),
->                       range = unname(TwoStep_Results$vario.par.point.est[2]),
->                       beta = unname(TwoStep_Results[["tsbs.point.est"]][2]),
->                       beta_std = unname(TwoStep_Results[["tsbs.var.mat"]][2,2]));
+MD.Starting.Value <- c(psill = unname(TwoStep_Results$vario.par.point.est[1]),
+                       range = unname(TwoStep_Results$vario.par.point.est[2]),
+                       beta = unname(TwoStep_Results[["tsbs.point.est"]][2]),
+                       beta_std = unname(TwoStep_Results[["tsbs.var.mat"]][2,2]));
 
->MD_Results <- MinimumDistance(DatR, "X", DatY, "Y", "Exp", MD.Starting.Value,
->                              cutoff.R = 150, cutoff.YR = 70);
+MD_Results <- MinimumDistance(DatR, "X", DatY, "Y", "Exp", MD.Starting.Value,
+                              cutoff.R = 150, cutoff.YR = 70);
 
->summary(MD_Results, alpha = 0.05)
+summary(MD_Results, alpha = 0.05)
 
 
 =====================================================================
