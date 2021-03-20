@@ -68,6 +68,8 @@ R.hat               281     -0.426     0.074    [-0.571 , -0.281]
 
 **Estimation and Inference for Minimum Distance Estimator**
 ```r
+
+## specifying starting value
 >MD.Starting.Value <- c(psill = unname(TwoStep_Results$vario.par.point.est[1]),
 >                       range = unname(TwoStep_Results$vario.par.point.est[2]),
 >                       beta = unname(TwoStep_Results[["tsbs.point.est"]][2]),
