@@ -29,7 +29,11 @@ Imports:
     mvtnorm,
     optimx,
     matrixcalc,
-    ks
+    ks,
+    spatstat,
+    mvQuad,
+    doParallel,
+    distributions3
 VignetteBuilder: knitr
 Language: en-US
 Depends: 
