@@ -31,9 +31,7 @@ Imports:
     matrixcalc,
     ks,
     spatstat,
-    mvQuad,
-    doParallel,
-    distributions3
+    mvQuad
 VignetteBuilder: knitr
 Language: en-US
 Depends: 
